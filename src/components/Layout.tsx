@@ -575,7 +575,7 @@ export function Layout() {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto flex flex-col bg-transparent pb-0">
+        <div className="flex-1 overflow-auto flex flex-col bg-transparent pb-24 lg:pb-0">
           <div className={`flex-1 ${location.pathname === '/ket-noi' ? 'p-0 md:p-4 lg:p-8' : 'p-4 lg:p-8'}`}>
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -662,13 +662,13 @@ export function Layout() {
           </footer>
         </div>
 
-        {/* Mobile Bottom Navigation Bar */}
-        <div className="lg:hidden h-16 bg-white dark:bg-[#131612] border-t border-slate-200 dark:border-white/5 flex items-center justify-around px-2 shrink-0 relative z-30 pb-safe">
+                {/* Mobile Floating Glassmorphic Nav Dock */}
+        <div className="lg:hidden fixed bottom-6 left-4 right-4 h-16 rounded-2xl bg-white/80 dark:bg-[#131612]/80 backdrop-blur-xl border border-slate-200/50 dark:border-white/5 flex items-center justify-around px-2 z-50 shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.4)] pb-safe">
           <NavLink
             to="/"
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center flex-1 py-1 text-[10px] transition-colors ${
-                isActive ? 'text-indigo-600 dark:text-[#FFD15B] font-bold' : 'text-slate-400 dark:text-slate-500'
+              `flex flex-col items-center justify-center flex-1 py-1 text-[10px] transition-all ${
+                isActive ? 'text-indigo-600 dark:text-[#FFD15B] font-bold scale-105' : 'text-slate-400 dark:text-slate-500'
               }`
             }
           >
@@ -678,19 +678,32 @@ export function Layout() {
           <NavLink
             to="/workspace"
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center flex-1 py-1 text-[10px] transition-colors ${
-                isActive ? 'text-indigo-600 dark:text-[#FFD15B] font-bold' : 'text-slate-400 dark:text-slate-500'
+              `flex flex-col items-center justify-center flex-1 py-1 text-[10px] transition-all ${
+                isActive ? 'text-indigo-600 dark:text-[#FFD15B] font-bold scale-105' : 'text-slate-400 dark:text-slate-500'
               }`
             }
           >
             <Brain className="w-5 h-5 mb-0.5" />
             <span>Workspace</span>
           </NavLink>
+
+          {/* Raised Central QR Button */}
+          <div className="relative -top-5 flex flex-col items-center justify-center shrink-0 w-16 h-16 z-50">
+            <button
+              onClick={() => setIsScanModalOpen(true)}
+              className="w-14 h-14 bg-gradient-to-br from-[#FFD15B] to-amber-500 hover:from-amber-400 hover:to-amber-600 text-slate-900 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/35 border-4 border-slate-50 dark:border-[#191C1A] transition-all duration-300 transform active:scale-95"
+              title="Quét QR nhanh"
+            >
+              <QrCode className="w-6 h-6 animate-pulse" />
+            </button>
+            <span className="text-[9px] text-slate-500 dark:text-slate-400 font-bold mt-1 uppercase tracking-wider">Quét QR</span>
+          </div>
+
           <NavLink
             to="/phong-bo-mon"
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center flex-1 py-1 text-[10px] transition-colors ${
-                isActive ? 'text-indigo-600 dark:text-[#FFD15B] font-bold' : 'text-slate-400 dark:text-slate-500'
+              `flex flex-col items-center justify-center flex-1 py-1 text-[10px] transition-all ${
+                isActive ? 'text-indigo-600 dark:text-[#FFD15B] font-bold scale-105' : 'text-slate-400 dark:text-slate-500'
               }`
             }
           >
@@ -700,30 +713,14 @@ export function Layout() {
           <NavLink
             to="/lop-hoc-so"
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center flex-1 py-1 text-[10px] transition-colors ${
-                isActive ? 'text-indigo-600 dark:text-[#FFD15B] font-bold' : 'text-slate-400 dark:text-slate-500'
+              `flex flex-col items-center justify-center flex-1 py-1 text-[10px] transition-all ${
+                isActive ? 'text-indigo-600 dark:text-[#FFD15B] font-bold scale-105' : 'text-slate-400 dark:text-slate-500'
               }`
             }
           >
             <Users className="w-5 h-5 mb-0.5" />
             <span>Lớp học</span>
-          </NavLink>
-          <NavLink
-            to="/ho-so-hoc-sinh"
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center flex-1 py-1 text-[10px] transition-colors ${
-                isActive ? 'text-indigo-600 dark:text-[#FFD15B] font-bold' : 'text-slate-400 dark:text-slate-500'
-              }`
-            }
-          >
-            {currentUser?.avatarUrl ? (
-              <img src={currentUser.avatarUrl} alt="Avatar" className="w-5 h-5 rounded-full object-cover mb-0.5" />
-            ) : (
-              <UserSquare2 className="w-5 h-5 mb-0.5" />
-            )}
-            <span>Hồ sơ</span>
-          </NavLink>
-        </div>
+          </NavLink>        </div>
       </main>
 
       {/* Mock Scan QR Modal */}
