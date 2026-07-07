@@ -145,4 +145,11 @@ export type LearningApp = {
   createdAt: string;
 };
 
+export type Advertisement = {
+  id: string;
+  imageUrl: string;
+  linkUrl: string;
+  createdAt: string;
+};
+
 

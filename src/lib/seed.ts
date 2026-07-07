@@ -66,6 +66,17 @@ export async function seedDatabase() {
     hasChanges = true;
   }
 
+  // 4. Seeding Ads
+  const adsSnap = await getDocs(collection(db, 'ads'));
+  if (adsSnap.empty) {
+    const ads = [
+      { id: 'ad_1', imageUrl: '/banner_workspace.png', linkUrl: 'https://github.com/nqnghia2013-ai/smart-school-qr', createdAt: new Date().toISOString() },
+      { id: 'ad_2', imageUrl: '/banner_solvefortomorrow.png', linkUrl: 'https://www.solvefortomorrow.vn', createdAt: new Date().toISOString() }
+    ];
+    ads.forEach(ad => batch.set(doc(db, 'ads', ad.id), ad));
+    hasChanges = true;
+  }
+
   if (hasChanges) {
     await batch.commit();
   }
