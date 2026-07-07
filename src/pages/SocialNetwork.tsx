@@ -194,89 +194,125 @@ export default function SocialNetwork() {
       }
     });
 
-    // 2. Open connections for new peers
+    // 2. Open connections for new peers or update tracks for existing ones
     for (const peerId of activePeers) {
-      if (peerConnectionsRef.current.has(peerId)) continue;
+      let pc = peerConnectionsRef.current.get(peerId);
+      const isPeerA = myId < peerId;
+      const pairKey = isPeerA ? `${myId}_${peerId}` : `${peerId}_${myId}`;
+      const pairDocRef = doc(db, 'calls', callId, 'signaling', pairKey);
+      let isNew = false;
 
-      try {
-        const pc = new RTCPeerConnection(iceServers);
-        peerConnectionsRef.current.set(peerId, pc);
-
-        if (stream) {
-          stream.getTracks().forEach(track => pc.addTrack(track, stream));
+      if (!pc) {
+        try {
+          pc = new RTCPeerConnection(iceServers);
+          peerConnectionsRef.current.set(peerId, pc);
+          isNew = true;
+        } catch (err) {
+          console.error(`Failed to initialize connection for peer ${peerId}:`, err);
+          continue;
         }
+      }
 
-        pc.ontrack = (event) => {
-          if (event.streams && event.streams[0]) {
-            setRemoteStreams(prev => new Map(prev).set(peerId, event.streams[0]));
-          }
-        };
-
-        // Determine Peer A / Peer B roles alphabetically
-        const isPeerA = myId < peerId;
-        const pairKey = isPeerA ? `${myId}_${peerId}` : `${peerId}_${myId}`;
-        const pairDocRef = doc(db, 'calls', callId, 'signaling', pairKey);
-
-        pc.onicecandidate = async (event) => {
-          if (event.candidate) {
-            const candidateColl = isPeerA ? 'callerCandidates' : 'calleeCandidates';
-            await addDoc(collection(db, 'calls', callId, 'signaling', pairKey, candidateColl), event.candidate.toJSON());
-          }
-        };
-
-        if (isPeerA) {
-          // Peer A: creates offer
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-          await setDoc(pairDocRef, { sdpOffer: offer.sdp }, { merge: true });
-
-          // Listen for answer
-          const unsubSignaling = onSnapshot(pairDocRef, async (snap) => {
-            const data = snap.data();
-            if (data?.sdpAnswer && !pc.currentRemoteDescription) {
-              await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdpAnswer }));
+      // Add/update tracks if stream is available
+      if (stream && pc) {
+        try {
+          const senders = pc.getSenders();
+          stream.getTracks().forEach(track => {
+            const alreadyAdded = senders.some(sender => sender.track === track);
+            if (!alreadyAdded) {
+              pc.addTrack(track, stream);
             }
           });
-
-          // Listen for callee candidates
-          const unsubIce = onSnapshot(collection(db, 'calls', callId, 'signaling', pairKey, 'calleeCandidates'), (snap) => {
-            snap.docChanges().forEach(async (change) => {
-              if (change.type === 'added') {
-                try {
-                  await pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
-                } catch (e) {}
-              }
-            });
-          });
-
-          signalingListenersRef.current.push(unsubSignaling, unsubIce);
-        } else {
-          // Peer B: listens for offer, then answers
-          const unsubSignaling = onSnapshot(pairDocRef, async (snap) => {
-            const data = snap.data();
-            if (data?.sdpOffer && !pc.currentRemoteDescription) {
-              await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdpOffer }));
-              const answer = await pc.createAnswer();
-              await pc.setLocalDescription(answer);
-              await setDoc(pairDocRef, { sdpAnswer: answer.sdp }, { merge: true });
-            }
-          });
-
-          // Listen for caller candidates
-          const unsubIce = onSnapshot(collection(db, 'calls', callId, 'signaling', pairKey, 'callerCandidates'), (snap) => {
-            snap.docChanges().forEach(async (change) => {
-              if (change.type === 'added') {
-                try {
-                  await pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
-                } catch (e) {}
-              }
-            });
-          });
-
-          signalingListenersRef.current.push(unsubSignaling, unsubIce);
+        } catch (trackErr) {
+          console.error(`Failed to add tracks for peer ${peerId}:`, trackErr);
         }
-      } catch (err) {
-        console.error(`Failed to connect with peer ${peerId}:`, err);
+      }
+
+      if (isNew && pc) {
+        try {
+          pc.ontrack = (event) => {
+            if (event.streams && event.streams[0]) {
+              setRemoteStreams(prev => new Map(prev).set(peerId, event.streams[0]));
+            }
+          };
+
+          pc.onicecandidate = async (event) => {
+            if (event.candidate) {
+              const candidateColl = isPeerA ? 'callerCandidates' : 'calleeCandidates';
+              await addDoc(collection(db, 'calls', callId, 'signaling', pairKey, candidateColl), event.candidate.toJSON());
+            }
+          };
+
+          pc.onnegotiationneeded = async () => {
+            if (isPeerA) {
+              try {
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                await setDoc(pairDocRef, { sdpOffer: offer.sdp }, { merge: true });
+              } catch (err) {
+                console.error(`Negotiation error for peer ${peerId}:`, err);
+              }
+            }
+          };
+
+          if (isPeerA) {
+            // Listen for answer
+            const unsubSignaling = onSnapshot(pairDocRef, async (snap) => {
+              const data = snap.data();
+              if (snap.exists() && data?.sdpAnswer && pc.signalingState === 'have-local-offer' && pc.remoteDescription?.sdp !== data.sdpAnswer) {
+                try {
+                  await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdpAnswer }));
+                } catch (e) {
+                  console.error("Failed to set remote answer:", e);
+                }
+              }
+            });
+
+            // Listen for callee candidates
+            const unsubIce = onSnapshot(collection(db, 'calls', callId, 'signaling', pairKey, 'calleeCandidates'), (snap) => {
+              snap.docChanges().forEach(async (change) => {
+                if (change.type === 'added') {
+                  try {
+                    await pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
+                  } catch (e) {}
+                }
+              });
+            });
+
+            signalingListenersRef.current.push(unsubSignaling, unsubIce);
+          } else {
+            // Peer B: listens for offer, then answers
+            const unsubSignaling = onSnapshot(pairDocRef, async (snap) => {
+              if (!snap.exists()) return;
+              const data = snap.data();
+              if (data?.sdpOffer && pc.signalingState === 'stable' && pc.remoteDescription?.sdp !== data.sdpOffer) {
+                try {
+                  await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdpOffer }));
+                  const answer = await pc.createAnswer();
+                  await pc.setLocalDescription(answer);
+                  await setDoc(pairDocRef, { sdpAnswer: answer.sdp }, { merge: true });
+                } catch (e) {
+                  console.error("Failed to set remote offer and create answer:", e);
+                }
+              }
+            });
+
+            // Listen for caller candidates
+            const unsubIce = onSnapshot(collection(db, 'calls', callId, 'signaling', pairKey, 'callerCandidates'), (snap) => {
+              snap.docChanges().forEach(async (change) => {
+                if (change.type === 'added') {
+                  try {
+                    await pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
+                  } catch (e) {}
+                }
+              });
+            });
+
+            signalingListenersRef.current.push(unsubSignaling, unsubIce);
+          }
+        } catch (setupErr) {
+          console.error(`Failed to setup listeners for peer ${peerId}:`, setupErr);
+        }
       }
     }
   };
@@ -360,6 +396,18 @@ export default function SocialNetwork() {
     const partner = getChatPartner(activeChat);
     const isGroup = activeChat.isGroup;
     
+    let stream: MediaStream | null = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: type === 'video'
+      });
+      setLocalStream(stream);
+    } catch (e) {
+      console.warn("Could not access camera/microphone:", e);
+      showToast("Không thể truy cập camera/mic. Dùng chế độ giả lập.", "info");
+    }
+
     try {
       const callData = {
         type,
@@ -379,16 +427,6 @@ export default function SocialNetwork() {
       const docRef = await addDoc(collection(db, 'calls'), callData);
       const callObj = { id: docRef.id, ...callData };
       setCurrentCall(callObj);
-      
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: type === 'video'
-        });
-        setLocalStream(stream);
-      } catch (e) {
-        showToast("Không thể truy cập camera/mic. Dùng chế độ giả lập.", "info");
-      }
 
       if (!isGroup) {
         ringtoneRef.current = playRingtone();
@@ -397,6 +435,10 @@ export default function SocialNetwork() {
       }
     } catch (e) {
       showToast("Không thể khởi tạo cuộc gọi", "error");
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        setLocalStream(null);
+      }
     }
   };
 
@@ -405,13 +447,24 @@ export default function SocialNetwork() {
     if (!currentUser) return;
     
     setIncomingCall(null);
-    setCurrentCall(callObj);
     
     if (ringtoneRef.current) {
       ringtoneRef.current.stop();
       ringtoneRef.current = null;
     }
     playConnectSound();
+
+    let stream: MediaStream | null = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: callObj.type === 'video'
+      });
+      setLocalStream(stream);
+    } catch (e) {
+      console.warn("Could not access camera/microphone:", e);
+      showToast("Không thể truy cập camera/mic. Dùng chế độ giả lập.", "info");
+    }
 
     try {
       const updatedParticipants = [...new Set([...(callObj.participants || []), currentUser.id])];
@@ -420,17 +473,17 @@ export default function SocialNetwork() {
         participants: updatedParticipants
       }, { merge: true });
 
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: callObj.type === 'video'
-        });
-        setLocalStream(stream);
-      } catch (e) {
-        showToast("Không thể truy cập camera/mic. Dùng chế độ giả lập.", "info");
-      }
+      setCurrentCall({
+        ...callObj,
+        status: 'active',
+        participants: updatedParticipants
+      });
     } catch (e) {
       showToast("Không thể tham gia cuộc gọi", "error");
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        setLocalStream(null);
+      }
     }
   };
 
@@ -483,6 +536,7 @@ export default function SocialNetwork() {
   // Sync streams to video elements
   useEffect(() => {
     if (localVideoRef.current && localStream) {
+      localVideoRef.current.muted = true;
       localVideoRef.current.srcObject = localStream;
     }
   }, [localStream, currentCall]);
@@ -515,13 +569,17 @@ export default function SocialNetwork() {
         const isMuted = data.mutedUsers?.includes(currentUser.id) || false;
         const isCamOff = data.cameraOffUsers?.includes(currentUser.id) || false;
         
-        if (isMuted !== callMuted && localStream) {
+        if (isMuted !== callMuted) {
           setCallMuted(isMuted);
-          localStream.getAudioTracks().forEach(t => t.enabled = !isMuted);
+          if (localStream) {
+            localStream.getAudioTracks().forEach(t => t.enabled = !isMuted);
+          }
         }
-        if (isCamOff !== callCameraOff && localStream) {
+        if (isCamOff !== callCameraOff) {
           setCallCameraOff(isCamOff);
-          localStream.getVideoTracks().forEach(t => t.enabled = !isCamOff);
+          if (localStream) {
+            localStream.getVideoTracks().forEach(t => t.enabled = !isCamOff);
+          }
         }
       }
 
@@ -655,19 +713,24 @@ export default function SocialNetwork() {
         if (ringtoneRef.current) { ringtoneRef.current.stop(); ringtoneRef.current = null; }
         playConnectSound();
         setIncomingCall(null);
-        setCurrentCall(call);
-        // Acquire media
+        
+        let stream: MediaStream | null = null;
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.type === 'video' });
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.type === 'video' });
           setLocalStream(stream);
         } catch (_) {}
-        // Update Firestore
+
         try {
           if (currentUser) {
             const updated = [...new Set([...(call.participants || []), currentUser.id])];
             await setDoc(doc(db, 'calls', call.id), { status: 'active', participants: updated }, { merge: true });
+            setCurrentCall({ ...call, status: 'active', participants: updated });
+          } else {
+            setCurrentCall(call);
           }
-        } catch (_) {}
+        } catch (_) {
+          setCurrentCall(call);
+        }
       }
 
       if (msgType === 'CALL_DECLINED' && call?.id === callId) {
@@ -2361,17 +2424,23 @@ export default function SocialNetwork() {
                       
                       return (
                         <div key={participantId} className="bg-slate-900/80 rounded-2xl border border-white/10 p-4 aspect-video relative flex flex-col items-center justify-center overflow-hidden group shadow-lg">
-                          {!isCamOff && (isMe ? localStream : stream) ? (
-                            isMe ? (
-                              <video ref={localVideoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover rounded-2xl" />
-                            ) : (
-                              <VideoFeed stream={stream!} className="absolute inset-0 w-full h-full object-cover rounded-2xl" />
-                            )
-                          ) : (
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xl font-bold border border-white/20 shadow-inner">
+                          {/* Always render remote stream audio/video, but hide video if camera is off */}
+                          {!isMe && stream && (
+                            <VideoFeed 
+                              stream={stream} 
+                              className={`absolute inset-0 w-full h-full object-cover rounded-2xl ${isCamOff ? 'invisible pointer-events-none' : ''}`} 
+                            />
+                          )}
+                          {isMe && !isCamOff && localStream && (
+                            <video ref={localVideoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover rounded-2xl" />
+                          )}
+                          {/* Show avatar if camera is off or no stream yet */}
+                          {(isCamOff || !(isMe ? localStream : stream)) && (
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xl font-bold border border-white/20 shadow-inner z-0">
                               {(participantInfo.fullName || 'U').charAt(0)}
                             </div>
                           )}
+
                           <span className="absolute bottom-3 left-3 bg-black/65 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold border border-white/5 z-10">
                             {participantInfo.fullName} {isMe && '(Tôi)'}
                           </span>
@@ -2422,17 +2491,29 @@ export default function SocialNetwork() {
                     ) : (
                       /* Active Video/Voice View */
                       <div className="absolute inset-0 w-full h-full bg-slate-950 flex items-center justify-center">
+                        {/* Always render remote stream audio/video for direct calls in the background/DOM */}
+                        {remoteStreams.has(callPartner.id) && (
+                          <VideoFeed 
+                            stream={remoteStreams.get(callPartner.id)!} 
+                            className={
+                              currentCall.type === 'video' && !currentCall.cameraOffUsers?.includes(callPartner.id)
+                                ? "w-full h-full object-cover"
+                                : "absolute w-px h-px opacity-0 pointer-events-none"
+                            }
+                          />
+                        )}
+
                         {currentCall.type === 'video' ? (
                           <>
-                            {/* Remote Video */}
-                            {remoteStreams.has(callPartner.id) && !currentCall.cameraOffUsers?.includes(callPartner.id) ? (
-                              <VideoFeed stream={remoteStreams.get(callPartner.id)!} className="w-full h-full object-cover" />
-                            ) : (
+                            {/* If camera is off or no stream yet, show placeholder/avatar */}
+                            {(currentCall.cameraOffUsers?.includes(callPartner.id) || !remoteStreams.has(callPartner.id)) && (
                               <div className="w-full h-full bg-[#121A33] flex flex-col items-center justify-center space-y-4">
                                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg animate-pulse">
                                   {(callPartner.fullName || 'U').charAt(0)}
                                 </div>
-                                <p className="text-sm text-slate-400">Đang nhận luồng video...</p>
+                                <p className="text-sm text-slate-400">
+                                  {currentCall.cameraOffUsers?.includes(callPartner.id) ? 'Camera đã tắt' : 'Đang kết nối...'}
+                                </p>
                               </div>
                             )}
                             {/* Local Video Preview PIP */}

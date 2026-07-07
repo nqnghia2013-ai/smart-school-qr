@@ -1,6 +1,12 @@
 @echo off
 set PATH=C:\Program Files\Git\cmd;%PATH%
-echo Pushing to master...
-git push origin main:master --force
-echo Pushing to main...
-git push origin main:main --force
+
+set /p msg="Nhap mo ta thay doi: "
+
+git add .
+git commit -m "%msg%"
+git push origin main
+
+echo.
+echo ✅ Da push len GitHub! Vercel se tu dong deploy...
+pause
