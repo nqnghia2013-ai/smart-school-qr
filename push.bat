@@ -1,0 +1,6 @@
+@echo off
+set PATH=C:\Program Files\Git\cmd;%PATH%
+echo Pushing to master...
+git push origin main:master --force
+echo Pushing to main...
+git push origin main:main --force

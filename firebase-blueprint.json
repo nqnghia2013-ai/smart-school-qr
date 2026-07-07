@@ -1,0 +1,94 @@
+{
+  "users": {
+    "schema": {
+      "role": "string",
+      "fullName": "string",
+      "email": "string",
+      "username": "string"
+    },
+    "mock_data": [
+      {
+        "id": "admin-1",
+        "role": "admin",
+        "fullName": "Administrator",
+        "email": "admin@example.com",
+        "username": "admin"
+      }
+    ],
+    "subcollections": {}
+  },
+  "classes": {
+    "schema": {
+      "name": "string",
+      "teacher": "string",
+      "studentsCount": "number"
+    },
+    "mock_data": [],
+    "subcollections": {}
+  },
+  "students": {
+    "schema": {
+      "fullName": "string",
+      "classId": "string"
+    },
+    "mock_data": [],
+    "subcollections": {}
+  },
+  "rooms": {
+    "schema": {
+      "name": "string",
+      "description": "string",
+      "iconName": "string",
+      "color": "string"
+    },
+    "mock_data": [],
+    "subcollections": {}
+  },
+  "roomBookings": {
+    "schema": {
+      "roomId": "string",
+      "teacherName": "string",
+      "date": "string",
+      "period": "string",
+      "purpose": "string",
+      "status": "string"
+    },
+    "mock_data": [],
+    "subcollections": {}
+  },
+  "notifications": {
+    "schema": {
+      "title": "string",
+      "message": "string",
+      "date": "string",
+      "isRead": "boolean",
+      "type": "string"
+    },
+    "mock_data": [],
+    "subcollections": {}
+  },
+  "qas": {
+    "schema": {
+      "question": "string",
+      "subject": "string",
+      "teacher": "string",
+      "date": "string",
+      "status": "string",
+      "likes": "number"
+    },
+    "mock_data": [],
+    "subcollections": {}
+  },
+  "documents": {
+    "schema": {
+      "title": "string",
+      "subject": "string",
+      "type": "string",
+      "size": "string",
+      "uploadDate": "string",
+      "url": "string"
+    },
+    "mock_data": [],
+    "subcollections": {}
+  }
+}

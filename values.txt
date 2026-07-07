@@ -1,0 +1,68 @@
+src/pages/ClassList.tsx:261:                        value={passwordAttempt}
+src/pages/ClassList.tsx:318:                      value={newClass.name}
+src/pages/ClassList.tsx:329:                      value={newClass.teacher}
+src/pages/ClassList.tsx:339:                      value={newClass.password}
+src/pages/SubjectRooms.tsx:79:                value={search}
+src/pages/RoomDetail.tsx:694:                      value={newTitle}
+src/pages/RoomDetail.tsx:706:                          value={newType}
+src/pages/RoomDetail.tsx:722:                          value={newUrl}
+src/pages/RoomDetail.tsx:763:                        value={newGrade}
+src/pages/RoomDetail.tsx:778:                        value={newSemester}
+src/pages/RoomDetail.tsx:838:                          value={searchDriveQuery}
+src/pages/DigitalClass.tsx:880:                                 value={sub} 
+src/pages/DigitalClass.tsx:931:                                 value={sub} 
+src/pages/DigitalClass.tsx:1212:                              value={searchMaterial}
+src/pages/DigitalClass.tsx:2041:                    value={newMaterialTitle}
+src/pages/DigitalClass.tsx:2052:                      value={newMaterialSubject}
+src/pages/DigitalClass.tsx:2057:                        <option key={s} value={s}>{s}</option>
+src/pages/DigitalClass.tsx:2064:                      value={newMaterialType}
+src/pages/DigitalClass.tsx:2084:                      value={newMaterialGrade}
+src/pages/DigitalClass.tsx:2097:                      value={newMaterialSemester}
+src/pages/DigitalClass.tsx:2133:                      value={newMaterialUrl}
+src/pages/DigitalClass.tsx:2207:                    value={awardStudentId}
+src/pages/DigitalClass.tsx:2213:                      <option key={hs.id} value={hs.id}>{hs.fullName}</option>
+src/pages/DigitalClass.tsx:2221:                    value={awardEmblem}
+src/pages/DigitalClass.tsx:2238:                    value={awardDesc}
+src/pages/DigitalClass.tsx:2248:                    value={awardBonusScore}
+src/pages/DigitalClass.tsx:2301:                    value={newMomentTitle}
+src/pages/DigitalClass.tsx:2313:                    value={newMomentDate}
+src/pages/DigitalClass.tsx:2389:                    value={newQuestTitle}
+src/pages/DigitalClass.tsx:2400:                    value={newQuestDesc}
+src/pages/DigitalClass.tsx:2411:                      value={newQuestSubject}
+src/pages/DigitalClass.tsx:2416:                        <option key={s} value={s}>{s}</option>
+src/pages/DigitalClass.tsx:2425:                      value={newQuestDueDate}
+src/pages/DigitalClass.tsx:2436:                    value={newQuestPoints}
+src/pages/RoomManagement.tsx:91:            value={search}
+src/pages/RoomManagement.tsx:275:                      value={bookingForm.date}
+src/pages/RoomManagement.tsx:284:                      value={bookingForm.period}
+src/pages/RoomManagement.tsx:288:                      {periods.map(p => <option key={p} value={p} className="bg-slate-900">{p}</option>)}
+src/pages/RoomManagement.tsx:296:                      value={bookingForm.purpose}
+src/pages/Teachers.tsx:141:                    value={newStaff.fullName}
+src/pages/Teachers.tsx:152:                    value={newStaff.title}
+src/pages/Teachers.tsx:162:                    value={newStaff.department}
+src/pages/Teachers.tsx:177:                    value={newStaff.email}
+src/pages/Admin.tsx:120:                    value={newRoom.name}
+src/pages/Admin.tsx:131:                    value={newRoom.description}
+src/pages/Admin.tsx:148:                    value={newClass.name}
+src/pages/Admin.tsx:159:                    value={newClass.teacher}
+src/pages/Admin.tsx:171:                    value={newClass.studentsCount || ''}
+src/pages/Admin.tsx:181:                    value={newClass.password || ''}
+src/pages/Admin.tsx:234:                     value={searchQuery}
+src/pages/Admin.tsx:280:                                value={u.role}
+src/pages/Admin.tsx:420:                             <QRCodeCanvas id={`qr-${item.id}`} value={qrUrl} size={80} className="rounded-lg mix-blend-multiply opacity-80 group-hover:opacity-100 transition-opacity" />
+src/pages/Login.tsx:153:                    value={emailOrUsername}
+src/pages/Login.tsx:167:                    value={password}
+src/pages/Feedback.tsx:177:                    value={newTitle}
+src/pages/Feedback.tsx:186:                    value={newDesc}
+src/pages/DocumentLibrary.tsx:139:            value={searchTerm}
+src/pages/DocumentLibrary.tsx:271:                     <input type="text" value={uploadTitle || ''} onChange={e => setUploadTitle(e.target.value)} placeholder="vd: Giáo án thực hành Lý thuyết L1" className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500" />
+src/pages/DocumentLibrary.tsx:276:                     <select value={uploadSubject || SUBJECTS[1]} onChange={e => setUploadSubject(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 bg-white">
+src/pages/DocumentLibrary.tsx:278:                           <option key={subj} value={subj}>{subj}</option>
+src/pages/DocumentLibrary.tsx:285:                     <select value={uploadType || 'pdf'} onChange={e => setUploadType(e.target.value as any)} className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 bg-white">
+src/pages/DocumentLibrary.tsx:295:                      <input type="text" value={uploadLink || ''} onChange={e => setUploadLink(e.target.value)} placeholder="Dán link Google Docs, Sheets, Slides hoặc Form" className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500" />
+src/pages/QAChannel.tsx:82:            value={selectedSubject || 'Toán học'}
+src/pages/QAChannel.tsx:95:              value={newQuestion || ''}
+src/pages/QAChannel.tsx:178:                      value={replyText || ''}
+src/components/Layout.tsx:611:                          value={manualCode}
+src/components/Chatbot.tsx:113:                  value={inputText}
+src/context/AppContext.tsx:310:    <AppContext.Provider value={{

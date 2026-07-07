@@ -1,0 +1,11 @@
+{
+  "name": "Smart School Workspace System",
+  "description": "Nền tảng trường học thông minh kết hợp QR Code để quản lý và học tập.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
