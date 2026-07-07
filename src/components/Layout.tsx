@@ -35,7 +35,7 @@ import {
   Brain,
   Globe
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 import { useAppContext } from '../context/AppContext';
 import { AppNotification } from '../types';
@@ -88,6 +88,13 @@ const NAV_GROUPS: NavGroup[] = [
 
 export function Layout() {
   const { isDark, theme, setTheme } = useTheme();
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -287,7 +294,8 @@ export function Layout() {
   const unreadCount = myNotifications.filter(n => !n.isRead).length;
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-[#191C1A] text-slate-800 font-sans overflow-hidden">
+    <MotionConfig transition={isMobile ? { duration: 0 } : undefined}>
+      <div className="flex h-screen bg-slate-50 dark:bg-[#191C1A] text-slate-800 font-sans overflow-hidden">
       
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
@@ -577,14 +585,18 @@ export function Layout() {
         {/* Page Content */}
         <div className="flex-1 overflow-auto flex flex-col bg-transparent pb-24 lg:pb-0">
           <div className={`flex-1 ${location.pathname === '/ket-noi' ? 'p-0 md:p-4 lg:p-8' : 'p-4 lg:p-8'}`}>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
+            {isMobile ? (
               <Outlet />
-            </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Outlet />
+              </motion.div>
+            )}
           </div>
 
           <footer className="mt-8 bg-white dark:bg-[#161917] border-t border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 px-6 lg:px-12 py-10 hidden md:block">
@@ -831,5 +843,6 @@ export function Layout() {
       </div>
 
     </div>
+    </MotionConfig>
   );
 }

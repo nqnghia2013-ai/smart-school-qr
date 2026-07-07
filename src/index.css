@@ -155,13 +155,20 @@
     /* Disable expensive animations & shadows on touch devices */
     box-shadow: none !important;
     text-shadow: none !important;
-    transition-duration: 150ms !important;
+    transition-duration: 0s !important;
+    transition: none !important;
+    animation: none !important;
   }
   
   .glass-card, .glass-nav {
-    /* Reduce blur filter on mobile to preserve battery and maintain high frame rates */
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
+    /* Completely disable expensive GPU blur filters on mobile */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+  }
+
+  .dark .glass-card, .dark .glass-nav {
+    background: rgba(19, 22, 18, 0.96) !important;
   }
 }
 
