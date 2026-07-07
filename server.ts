@@ -198,22 +198,30 @@ async function startServer() {
       const ollamaModel = process.env.OLLAMA_MODEL || "llama3";
       const geminiKey = process.env.GEMINI_API_KEY;
 
-      const prompt = `Bạn là hệ thống kiểm duyệt nội dung TỰ ĐỘNG AI CỦA TRƯỜNG HỌC. Nhiệm vụ của bạn là kiểm duyệt cực kỳ nghiêm ngặt.
-      Dựa vào thông tin tài liệu giáo dục dưới đây, hãy xác định xem tài liệu đó có an toàn, phù hợp với môi trường học đường không.
-      
-      Tiêu đề: "${title}"
-      Môn học: ${subject}
-      Loại file: ${type}
-      Nội dung trích xuất: "${extractedText}"
+      const prompt = `Bạn là hệ thống AI kiểm duyệt nội dung của trường học thông minh tại Việt Nam.
+      Hãy phân tích cực kỳ kỹ lưỡng tài liệu sau đây để đảm bảo an toàn tuyệt đối và tuân thủ nghiêm ngặt quy định pháp luật Việt Nam cũng như thuần phong mỹ tục.
 
-      Đặc biệt chú ý đến "Nội dung trích xuất". NẾU TRONG NỘI DUNG CÓ CHỨA BẤT KỲ TỪ NGỮ NÀO PHẢN CẢM, 18+, đồi trụy, thô tục, bạo lực, gian lận (hack, cheat), chống phá, độc hại, DÙ LÀ NHỎ NHẤT HOẶC ẨN DƯỚI DẠNG BÀI TẬP, BẠN PHẢI ĐÁNH GIÁ LÀ KHÔNG AN TOÀN (isSafe: false). Không được để lọt bất kỳ nội dung bậy bạ nào.
+      Tài liệu cần quét:
+      - Tiêu đề: "${title}"
+      - Môn học: ${subject}
+      - Loại file: ${type}
+      - Nội dung trích xuất bên trong tài liệu: "${extractedText}"
+
+      QUY TẮC DUYỆT TÀI LIỆU (CỰC KỲ NGHIÊM NGẶT):
+      1. Đánh giá là KHÔNG AN TOÀN (isSafe: false) nếu phát hiện bất kỳ nội dung hoặc từ ngữ nào thuộc các nhóm sau đây:
+         - Vi phạm pháp luật Việt Nam: Chống phá chính quyền, xuyên tạc lịch sử, xuyên tạc chủ quyền lãnh thổ Việt Nam (ví dụ: bản đồ hình lưỡi bò, thiếu Hoàng Sa - Trường Sa), phản động, kích động biểu tình, tuyên truyền tôn giáo trái phép.
+         - Nội dung nhạy cảm, đồi trụy, 18+: Từ ngữ thô tục, khiêu dâm, nội dung người lớn, kích dục, hẹn hò không lành mạnh trong học đường.
+         - Bạo lực, độc hại: Kích động bạo lực học đường, tự hại, cờ bạc, cá độ, ma túy, chất kích thích, hướng dẫn chế tạo vũ khí hoặc chất nổ.
+         - Gian lận học tập: Cung cấp phần mềm hack, cheat, các phương pháp gian lận thi cử trái phép.
+         - Ngôn từ thô tục, chửi thề, xúc phạm người khác, hoặc các hành vi bắt nạt trực tuyến.
+      2. Nếu không phát hiện bất kỳ dấu hiệu vi phạm nào, đánh giá là AN TOÀN (isSafe: true).
       
-      Trả về ĐÚNG MỘT CHUỖI JSON HỢP LỆ có cấu trúc:
+      Yêu cầu trả về kết quả dưới dạng một đối tượng JSON duy nhất có cấu trúc chính xác sau:
       {
-        "isSafe": true/false,
-        "reason": "Giải thích ngắn gọn lý do tại sao an toàn hoặc trích dẫn từ ngữ vi phạm khiến tài liệu không an toàn. Nếu không có nội dung, chỉ đánh giá dựa trên tiêu đề."
+        "isSafe": true hoặc false,
+        "reason": "Nếu không an toàn, giải thích chi tiết lý do và trích dẫn cụ thể câu chữ/nội dung vi phạm. Nếu an toàn, ghi lý do là 'Tài liệu an toàn và phù hợp'."
       }
-      KHÔNG trả về bất kỳ text nào ngoài JSON. KHÔNG dùng markdown tag như \`\`\`json.`;
+      Lưu ý quan trọng: Chỉ trả về chuỗi JSON thô hợp lệ, tuyệt đối không viết thêm bất kỳ đoạn văn nào khác bên ngoài và không đặt trong cặp thẻ \`\`\`json \`\`\`.`;
 
       let aiResultText = "";
 
