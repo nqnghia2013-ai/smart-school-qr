@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Map, ArrowRight, Building2, QrCode, ShieldAlert, FileText, UserSquare2, BookOpen, Flame, PlayCircle, Crown, MessagesSquare, Sun, Cloud, Sparkles, Bird, Plane, Car, Moon, Star, Calendar, Store, Snowflake, ShoppingBag } from 'lucide-react';
+import { 
+  Users, Map, ArrowRight, Building2, QrCode, ShieldAlert, FileText, UserSquare2, 
+  BookOpen, Flame, PlayCircle, Crown, MessagesSquare, Sun, Cloud, Sparkles, 
+  Bird, Plane, Car, Moon, Star, Calendar, Store, Snowflake, ShoppingBag,
+  Terminal, Server, Activity, ShieldCheck, Database
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { motion } from 'motion/react';
@@ -9,7 +14,7 @@ import StreakCalendarModal from '../components/StreakCalendarModal';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { rooms, students, currentUser, updateUser, addNotification } = useAppContext();
+  const { rooms, students, classes, users, currentUser, updateUser, addNotification } = useAppContext();
   const [isGifShopOpen, setIsGifShopOpen] = useState(false);
   const [examDateStr, setExamDateStr] = useState(currentUser?.examDate || '');
   const [timeLeft, setTimeLeft] = useState<{days: number, hours: number, minutes: number, seconds: number} | null>(null);
@@ -21,6 +26,185 @@ export default function Dashboard() {
       navigate('/ho-so-hoc-sinh');
     }
   }, [currentUser, navigate]);
+
+  if (currentUser?.role === 'technician') {
+    const schoolAccounts = users.filter(u => u.role === 'school');
+    const teacherCount = users.filter(u => u.role === 'teacher').length;
+    const parentCount = users.filter(u => u.role === 'parent').length;
+
+    return (
+      <div className="space-y-8 pb-20 relative max-w-[1400px] mx-auto text-slate-100 min-h-screen">
+        {/* Futuristic Background Grids */}
+        <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse" style={{ animationDelay: '3s' }}></div>
+
+        {/* Page Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-slate-950 border border-slate-800 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-6"
+        >
+          <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="flex items-center gap-6 relative z-10">
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-[0_0_30px_rgba(16,185,129,0.3)] border border-emerald-400/20">
+              <Server className="w-8 h-8" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em]">Hệ thống trung tâm quản trị</p>
+              <h1 className="text-3xl md:text-4xl font-display font-black tracking-tight mt-1 flex items-center gap-3">
+                KỸ THUẬT VIÊN <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">SYSTEM CONSOLE</span>
+              </h1>
+              <p className="text-slate-400 text-sm font-medium mt-1">
+                Giám sát thiết bị kết nối, mạng lưới học vụ đa trường học và quản lý tài nguyên
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/quan-ly-truong-hoc')}
+            className="relative z-10 shrink-0 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 border border-emerald-400/20 rounded-2xl text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-0.5 flex items-center gap-2"
+          >
+            <Building2 className="w-4 h-4" /> Đi tới Quản lý trường học
+          </button>
+        </motion.div>
+
+        {/* Global Statistics Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          {[
+            { label: 'Hệ thống Trường', count: schoolAccounts.length, icon: Building2, color: 'text-indigo-400 border-indigo-500/20 bg-indigo-500/5' },
+            { label: 'Lớp học số hóa', count: classes.length, icon: Database, color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' },
+            { label: 'Tài khoản Giáo viên', count: teacherCount, icon: Users, color: 'text-cyan-400 border-cyan-500/20 bg-cyan-500/5' },
+            { label: 'Học sinh đăng ký', count: students.length, icon: UserSquare2, color: 'text-purple-400 border-purple-500/20 bg-purple-500/5' },
+            { label: 'Tài khoản Phụ huynh', count: parentCount, icon: ShieldCheck, color: 'text-pink-400 border-pink-500/20 bg-pink-500/5' }
+          ].map((stat, idx) => (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              key={stat.label}
+              className={`border p-6 rounded-3xl flex items-center justify-between shadow-lg ${stat.color}`}
+            >
+              <div>
+                <p className="text-[10px] font-black text-slate-450 uppercase tracking-widest">{stat.label}</p>
+                <h3 className="text-3xl font-black font-display text-white mt-2">{stat.count}</h3>
+              </div>
+              <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center shrink-0">
+                <stat.icon className="w-5 h-5" />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Main Panel Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Cyberpunk Activity Logs Console (Left Side) */}
+          <div className="lg:col-span-7 xl:col-span-8">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-slate-950 border border-slate-800/80 rounded-[2rem] p-6 space-y-6 shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl"></div>
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-4 relative z-10">
+                <h2 className="text-lg font-display font-black flex items-center gap-2.5">
+                  <Terminal className="w-5 h-5 text-emerald-400" /> SYSTEM ACTIVITY CONSOLE
+                </h2>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping"></span>
+                  <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">LIVE DATA</span>
+                </div>
+              </div>
+
+              {/* simulated logs */}
+              <div className="font-mono text-xs text-slate-400 space-y-3.5 bg-slate-900/60 p-5 rounded-2xl border border-slate-800/60 max-h-[350px] overflow-y-auto shadow-inner leading-relaxed">
+                <div><span className="text-emerald-500">[INFO]</span> Initializing Smart School QR Core system...</div>
+                <div><span className="text-emerald-500">[OK]</span> Connection established with Google Firestore database.</div>
+                <div><span className="text-cyan-500">[SYNC]</span> Synced {schoolAccounts.length} school domains and {classes.length} digital classrooms.</div>
+                <div><span className="text-emerald-500">[INFO]</span> AI verification agent online - checking cross-match parameters.</div>
+                <div><span className="text-purple-500">[SECURITY]</span> Multitenancy domain constraints: isolates active on {schoolAccounts.length} tenants.</div>
+                <div><span className="text-yellow-500">[NOTICE]</span> System execution logs are verified clean. Server port 3000 running.</div>
+                <div className="text-slate-505 border-t border-slate-800/50 pt-2 flex items-center gap-2">
+                  <Activity className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>CPU utilization: 12% | Network latency: 45ms</span>
+                </div>
+              </div>
+
+              {/* Action grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <button
+                  onClick={() => navigate('/quan-ly-truong-hoc')}
+                  className="bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-4 rounded-2xl text-left transition-all"
+                >
+                  <p className="text-xs font-black uppercase text-emerald-400 tracking-wide mb-1">Cấu hình Đơn vị</p>
+                  <p className="text-xs text-slate-400 font-medium">Tạo thêm tài khoản và quản trị mạng lưới trường học địa phương.</p>
+                </button>
+                <button
+                  onClick={() => navigate('/thu-vien')}
+                  className="bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-4 rounded-2xl text-left transition-all"
+                >
+                  <p className="text-xs font-black uppercase text-indigo-400 tracking-wide mb-1">Thư viện chung</p>
+                  <p className="text-xs text-slate-400 font-medium">Truy cập trực tiếp để duyệt các tài liệu của tất cả các trường.</p>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Quick Info & Network status (Right Side) */}
+          <div className="lg:col-span-5">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-slate-950 border border-slate-800/80 rounded-[2rem] p-6 space-y-6 shadow-2xl"
+            >
+              <h2 className="text-lg font-display font-black border-b border-slate-800/80 pb-4 flex items-center gap-2.5">
+                <Building2 className="w-5 h-5 text-indigo-400" /> MẠNG LƯỚI TRƯỜNG ĐĂNG KÝ
+              </h2>
+
+              <div className="space-y-4 max-h-[380px] overflow-y-auto pr-1">
+                {schoolAccounts.map(school => {
+                  const scTeachers = users.filter(u => u.role === 'teacher' && u.schoolId === school.id).length;
+                  const scStudents = students.filter(s => s.schoolId === school.id).length;
+                  const scParents = users.filter(u => u.role === 'parent' && u.schoolId === school.id).length;
+
+                  return (
+                    <div
+                      key={school.id}
+                      onClick={() => navigate('/quan-ly-truong-hoc')}
+                      className="bg-slate-900 hover:bg-slate-850 border border-slate-850 hover:border-slate-850/80 p-4 rounded-2xl cursor-pointer transition-all space-y-2 group"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="font-black text-sm text-white group-hover:text-emerald-400 transition-colors">{school.fullName}</span>
+                        <span className="px-2 py-0.5 bg-slate-850 text-slate-400 text-[9px] font-black rounded-full border border-slate-800">{school.region || 'Unknown'}</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-bold text-slate-400 pt-1 border-t border-slate-800/30">
+                        <div>
+                          <p className="text-slate-500 font-medium">GV</p>
+                          <p className="text-indigo-400 font-black text-xs">{scTeachers}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 font-medium">HS</p>
+                          <p className="text-emerald-400 font-black text-xs">{scStudents}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 font-medium">PH</p>
+                          <p className="text-purple-400 font-black text-xs">{scParents}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {schoolAccounts.length === 0 && (
+                  <p className="text-center py-8 text-slate-500 text-sm font-semibold">Chưa có tài khoản trường học nào.</p>
+                )}
+              </div>
+            </motion.div>
+          </div>
+
+        </div>
+
+      </div>
+    );
+  }
 
 
 

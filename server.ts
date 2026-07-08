@@ -365,11 +365,13 @@ async function startServer() {
   // API route for sending email to parents via Nodemailer (Gmail)
   app.post("/api/send-email", async (req, res) => {
     try {
-      const { parentEmail, parentName, studentName, className, aiComment, attachment, attachmentName } = req.body;
+      const { parentEmail, parentName, studentName, className, aiComment, attachment, attachmentName, schoolName } = req.body;
 
       if (!parentEmail || !studentName || !aiComment) {
         return res.status(400).json({ error: "Thiếu thông tin người nhận hoặc nội dung gửi." });
       }
+
+      const activeSchoolName = schoolName || "Smart School Workspace - THCS Quảng Phú Cầu";
 
       const gmailUser = process.env.GMAIL_USER || 'workspacegamer1@gmail.com';
       const gmailPass = process.env.GMAIL_APP_PASSWORD || 're_W2vYGkMZ_K1VmE87SUtaYTwgcekaCq6er';
@@ -385,14 +387,13 @@ async function startServer() {
       const studentClassInfo = className ? ` - Lớp ${className}` : "";
 
       const mailOptions: any = {
-        from: `"Smart School Workspace - THCS Quảng Phú Cầu" <${gmailUser}>`, 
+        from: `"Smart School Workspace" <${gmailUser}>`, 
         to: parentEmail,
         subject: `[Thông báo] Kết quả học tập của học sinh ${studentName}${studentClassInfo}`,
         html: `
           <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
             <div style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 24px; text-align: center;">
-              <h2 style="margin: 0 0 8px; font-size: 22px; font-weight: 600;">Hệ Thống Smart School Workspace</h2>
-              <p style="margin: 0; font-size: 14px; opacity: 0.9;">Trường THCS Quảng Phú Cầu</p>
+              <h2 style="margin: 0 0 8px; font-size: 22px; font-weight: 600; line-height: 1.2;">Hệ Thống Smart School Workspace</h2>
             </div>
             <div style="padding: 32px; background-color: #ffffff;">
               <h3 style="margin-top: 0; color: #1e293b; font-size: 18px;">Kính gửi Quý Phụ huynh,</h3>

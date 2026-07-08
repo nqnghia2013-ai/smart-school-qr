@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'teacher' | 'student' | 'technician' | 'parent';
+export type Role = 'admin' | 'teacher' | 'student' | 'technician' | 'parent' | 'school';
 
 export type User = {
   id: string;
@@ -25,6 +25,8 @@ export type User = {
   birthYear?: string;   // Birth year e.g. "2012"
   status?: 'online' | 'offline';
   lastActive?: string;  // ISO string
+  schoolId?: string;    // Associated school ID
+  region?: string;      // Associated school region (for school accounts)
 };
 
 export type StoreGif = {
@@ -64,6 +66,7 @@ export type StudentProfile = {
   parentName?: string;
   parentEmail?: string;
   parentPhone?: string;
+  schoolId?: string; // Associated school ID
 };
 
 export type DigitalClass = {
@@ -79,6 +82,7 @@ export type DigitalClass = {
   schedule: { day: string; morning: string[]; afternoon: string[] }[];
   announcements: { id: string; title: string; date: string; content: string; type: string; from: string }[];
   students: StudentProfile[];
+  schoolId?: string; // Associated school ID
 };
 
 export type StaffProfile = {

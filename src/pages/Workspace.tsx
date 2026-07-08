@@ -70,13 +70,22 @@ export default function Workspace() {
 }
 
 function ParentCommunication() {
-  const { students, users, classes, currentUser, showToast } = useAppContext();
+  const { students, users, classes, currentUser, getSchoolName, showToast } = useAppContext();
   
   // Filter parents whose children are in the teacher's classes (if the user is a teacher)
-  const myClasses = currentUser?.role === 'admin' ? classes : classes.filter(c => 
-    (c.teacherEmail && c.teacherEmail === currentUser?.email) || 
-    (c.teacher === currentUser?.fullName)
-  );
+  const myClasses = currentUser?.role === 'admin' 
+    ? classes 
+    : classes.filter(c => {
+        const classTeacherLower = (c.teacher || '').toLowerCase().replace(/\s+/g, '');
+        const currentFullNameLower = (currentUser?.fullName || '').toLowerCase().replace(/\s+/g, '');
+        const currentUsernameLower = (currentUser?.username || '').toLowerCase().replace(/\s+/g, '');
+        
+        return (
+          (c.teacherEmail && c.teacherEmail === currentUser?.email) ||
+          (classTeacherLower === currentFullNameLower) ||
+          (classTeacherLower === currentUsernameLower)
+        );
+      });
   
   const myClassIds = myClasses.map(c => c.id);
   
@@ -168,6 +177,8 @@ function ParentCommunication() {
         attachmentData = await fileToDataURL;
       }
 
+      const schoolName = getSchoolName(currentUser?.schoolId || '');
+
       const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -178,7 +189,8 @@ function ParentCommunication() {
           className: className,
           aiComment: teacherComment,
           attachment: attachmentData,
-          attachmentName: attachmentName
+          attachmentName: attachmentName,
+          schoolName: schoolName
         })
       });
       const data = await res.json();
@@ -335,10 +347,19 @@ function ParentManagement() {
   const [search, setSearch] = useState("");
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
-  const myClasses = currentUser?.role === 'admin' ? classes : classes.filter(c => 
-    (c.teacherEmail && c.teacherEmail === currentUser?.email) || 
-    (c.teacher === currentUser?.fullName)
-  );
+  const myClasses = currentUser?.role === 'admin' 
+    ? classes 
+    : classes.filter(c => {
+        const classTeacherLower = (c.teacher || '').toLowerCase().replace(/\s+/g, '');
+        const currentFullNameLower = (currentUser?.fullName || '').toLowerCase().replace(/\s+/g, '');
+        const currentUsernameLower = (currentUser?.username || '').toLowerCase().replace(/\s+/g, '');
+        
+        return (
+          (c.teacherEmail && c.teacherEmail === currentUser?.email) ||
+          (classTeacherLower === currentFullNameLower) ||
+          (classTeacherLower === currentUsernameLower)
+        );
+      });
   
   const myClassIds = myClasses.map(c => c.id);
   

@@ -38,6 +38,7 @@ type Document = {
   uploaderId?: string;
   uploaderName?: string;
   status?: 'approved' | 'pending' | 'rejected';
+  schoolId?: string;
 };
 
 const MOCK_DOCS: Document[] = [];
@@ -56,10 +57,15 @@ export default function DocumentLibrary() {
 
   React.useEffect(() => {
     const unsub = onSnapshot(collection(db, 'documents'), snapshot => {
-      setDocuments(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Document)));
+      const allDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Document & { schoolId?: string }));
+      if (currentUser?.role === 'technician') {
+        setDocuments(allDocs);
+      } else {
+        setDocuments(allDocs.filter(d => d.schoolId === currentUser?.schoolId));
+      }
     });
     return unsub;
-  }, []);
+  }, [currentUser]);
   
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadMethod, setUploadMethod] = useState<'drive' | 'local'>('drive');
@@ -113,7 +119,8 @@ export default function DocumentLibrary() {
       uploaderId: currentUser?.id,
       uploaderName: currentUser?.fullName,
       status: 'approved',
-      parentId: currentFolderId
+      parentId: currentFolderId,
+      schoolId: currentUser?.schoolId || ''
     };
     try {
       // Assuming setDoc and doc are imported
@@ -286,7 +293,8 @@ export default function DocumentLibrary() {
           uploaderId: currentUser.id,
           uploaderName: currentUser.fullName,
           parentId: currentFolderId || null,
-          status: isBad ? 'pending' : 'approved'
+          status: isBad ? 'pending' : 'approved',
+          schoolId: currentUser.schoolId || ''
         };
 
         await setDoc(doc(db, 'documents', id), JSON.parse(JSON.stringify(newDoc)));

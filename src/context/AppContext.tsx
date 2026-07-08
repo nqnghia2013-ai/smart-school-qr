@@ -44,6 +44,7 @@ export interface AppContextType {
   deleteStoreGif: (id: string) => void;
   addLearningApp: (app: Omit<LearningApp, 'id' | 'createdAt'>) => void;
   deleteLearningApp: (id: string) => void;
+  getSchoolName: (schoolId: string) => string;
 }
 
 const defaultStats: DashboardStats = {
@@ -317,7 +318,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addUser = (user: Omit<User, 'id'>) => {
     const id = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    setDoc(doc(db, 'users', id), user).catch(console.error);
+    const finalUser = {
+      ...user,
+      schoolId: user.schoolId || currentUser?.schoolId || ''
+    };
+    setDoc(doc(db, 'users', id), finalUser).catch(console.error);
     return id;
   };
 
@@ -341,7 +346,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addRoom = (room: Omit<SubjectRoom, 'id'>) => {
     const id = Date.now().toString();
-    const cleanRoom = Object.fromEntries(Object.entries(room).filter(([_, v]) => v !== undefined));
+    const finalRoom = {
+      ...room,
+      schoolId: (room as any).schoolId || currentUser?.schoolId || ''
+    };
+    const cleanRoom = Object.fromEntries(Object.entries(finalRoom).filter(([_, v]) => v !== undefined));
     setDoc(doc(db, 'rooms', id), cleanRoom).catch(console.error);
   };
 
@@ -356,7 +365,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addClass = (cls: Omit<DigitalClass, 'id'>) => {
     const id = Date.now().toString();
-    const cleanCls = Object.fromEntries(Object.entries(cls).filter(([_, v]) => v !== undefined));
+    const finalCls = {
+      ...cls,
+      schoolId: cls.schoolId || currentUser?.schoolId || ''
+    };
+    const cleanCls = Object.fromEntries(Object.entries(finalCls).filter(([_, v]) => v !== undefined));
     setDoc(doc(db, 'classes', id), cleanCls).catch(console.error);
   };
 
@@ -399,7 +412,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addStudent = (student: Omit<StudentProfile, 'id'>) => {
     const id = Date.now().toString();
-    setDoc(doc(db, 'students', id), student).catch(console.error);
+    const finalStudent = {
+      ...student,
+      schoolId: student.schoolId || currentUser?.schoolId || ''
+    };
+    setDoc(doc(db, 'students', id), finalStudent).catch(console.error);
   };
 
   const deleteStudent = async (id: string) => {
@@ -472,7 +489,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const newNotif = {
       ...notif,
       isRead: false,
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      schoolId: (notif as any).schoolId || currentUser?.schoolId || ''
     };
     const id = Date.now().toString();
     setDoc(doc(db, 'notifications', id), newNotif).catch(console.error);
@@ -500,7 +518,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ...qa,
       date: new Date().toISOString(),
       likes: 0,
-      status: 'waiting'
+      status: 'waiting',
+      schoolId: currentUser?.schoolId || ''
     };
     setDoc(doc(db, 'qas', id), newQA).catch(console.error);
     return id;
@@ -529,14 +548,77 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     deleteDoc(doc(db, 'learningApps', id)).catch(console.error);
   };
 
+  const getSchoolName = (schoolIdVal: string) => {
+    if (!schoolIdVal) return 'Smart School Workspace';
+    const school = users.find(u => u.role === 'school' && (u.id === schoolIdVal || u.schoolId === schoolIdVal));
+    return school?.fullName || 'Smart School Workspace';
+  };
+
   // Seed default admin if cloud DB has NO users yet!
   useEffect(() => {
     seedDatabase().catch(console.error);
   }, []);
 
+  // Multi-tenant isolation filters
+  const schoolId = currentUser?.schoolId;
+  const isTechnician = currentUser?.role === 'technician';
+
+  const filteredUsers = users.filter(u => {
+    if (!currentUser) return true;
+    if (isTechnician) return true;
+    return u.schoolId === schoolId || u.role === 'technician';
+  });
+
+  const filteredRooms = rooms.filter(r => {
+    if (!currentUser) return true;
+    if (isTechnician) return true;
+    return (r as any).schoolId === schoolId || !(r as any).schoolId;
+  });
+
+  const filteredClasses = classes.filter(c => {
+    if (!currentUser) return true;
+    if (isTechnician) return true;
+    return c.schoolId === schoolId;
+  });
+
+  const filteredStudents = students.filter(s => {
+    if (!currentUser) return true;
+    if (isTechnician) return true;
+    return s.schoolId === schoolId;
+  });
+
+  const filteredStaffs = staffs.filter(st => {
+    if (!currentUser) return true;
+    if (isTechnician) return true;
+    return (st as any).schoolId === schoolId || !(st as any).schoolId;
+  });
+
+  const filteredQas = qas.filter(q => {
+    if (!currentUser) return true;
+    if (isTechnician) return true;
+    return (q as any).schoolId === schoolId || !(q as any).schoolId;
+  });
+
+  const filteredNotifications = notifications.filter(notif => {
+    if (!currentUser) return true;
+    if (isTechnician) return true;
+    return notif.schoolId === schoolId || !notif.schoolId;
+  });
+
   return (
     <AppContext.Provider value={{
-      currentUser, users, rooms, students, classes, staffs, stats, notifications, qas, storeGifs, learningApps,
+      currentUser,
+      users: filteredUsers,
+      rooms: filteredRooms,
+      students: filteredStudents,
+      classes: filteredClasses,
+      staffs: filteredStaffs,
+      stats,
+      notifications: filteredNotifications,
+      qas: filteredQas,
+      storeGifs,
+      learningApps,
+      getSchoolName,
       login, logout, addUser, updateUser, updateClass, updateStudent, updateUserRole, deleteUser,
       addRoom, updateRoom, deleteRoom, addClass, deleteClass, addStudent, deleteStudent, addStaff, deleteStaff, 
       recordRoomVisit, addNotification, markNotificationAsRead, clearAllNotifications, showToast, addQA, answerQA, addStoreGif, deleteStoreGif, addLearningApp, deleteLearningApp

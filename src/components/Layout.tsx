@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   Settings,
+  ShieldCheck,
   Facebook,
   Twitter,
   Instagram,
@@ -48,6 +49,7 @@ interface NavItem {
   label: string;
   icon: any;
   adminOnly?: boolean;
+  technicianOnly?: boolean;
 }
 
 interface NavGroup {
@@ -74,6 +76,7 @@ const NAV_GROUPS: NavGroup[] = [
     title: "Quản lý hệ thống",
     items: [
       { path: '/quan-ly', label: 'Quản trị hệ thống', icon: Settings, adminOnly: true },
+      { path: '/quan-ly-truong-hoc', label: 'Quản lý trường học', icon: ShieldCheck, technicianOnly: true }
     ]
   },
   {
@@ -271,8 +274,17 @@ export function Layout() {
     return {
       ...group,
       items: group.items.filter(item => {
-        if (item.adminOnly && currentUser.role !== 'admin') {
+        if (item.adminOnly && currentUser.role !== 'admin' && currentUser.role !== 'school') {
           return false;
+        }
+        if (item.technicianOnly && currentUser.role !== 'technician') {
+          return false;
+        }
+        if (currentUser.role === 'technician') {
+          const allowedForTech = ['/', '/quan-ly-truong-hoc', '/app-hoc-tap', '/huong-dan', '/nhat-ky', '/gop-y'];
+          if (!allowedForTech.includes(item.path)) {
+            return false;
+          }
         }
         if (currentUser.role === 'parent') {
           const allowedForParent = ['/ho-so-hoc-sinh', '/thu-vien', '/huong-dan', '/gop-y', '/nhat-ky', '/hoi-dap'];

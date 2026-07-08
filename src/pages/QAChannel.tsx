@@ -19,7 +19,7 @@ export default function QAChannel() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
 
-  const isTeacher = currentUser?.role === 'admin' || currentUser?.role === 'teacher';
+  const isTeacher = currentUser?.role === 'teacher';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

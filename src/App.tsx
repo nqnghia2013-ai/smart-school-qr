@@ -14,6 +14,7 @@ import ClassList from './pages/ClassList';
 import StudentProfile from './pages/StudentProfile';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
+import SchoolManagement from './pages/SchoolManagement';
 import Guide from './pages/Guide';
 import FAQ from './pages/FAQ';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="hoi-dap" element={<QAChannel />} />
             <Route path="app-hoc-tap" element={<LearningApps />} />
             <Route path="quan-ly" element={<Admin />} />
+            <Route path="quan-ly-truong-hoc" element={<SchoolManagement />} />
             <Route path="huong-dan" element={<Guide />} />
             <Route path="nhat-ky" element={<WorkLog />} />
             <Route path="gop-y" element={<Feedback />} />
