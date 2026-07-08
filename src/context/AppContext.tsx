@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { SubjectRoom, StudentProfile, DigitalClass, DashboardStats, User, StaffProfile, AppNotification, QA, StoreGif, LearningApp, Advertisement } from '../types';
+import { SubjectRoom, StudentProfile, DigitalClass, DashboardStats, User, StaffProfile, AppNotification, QA, StoreGif, LearningApp } from '../types';
 import { signOut as firebaseSignOut, db } from '../lib/firebase';
 import { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, query, where } from 'firebase/firestore';
 import { seedDatabase } from '../lib/seed';
@@ -16,7 +16,6 @@ export interface AppContextType {
   qas: QA[];
   storeGifs: StoreGif[];
   learningApps: LearningApp[];
-  ads: Advertisement[];
   login: (user: User) => void;
   logout: () => void;
   addUser: (user: Omit<User, 'id'>) => string;
@@ -45,8 +44,6 @@ export interface AppContextType {
   deleteStoreGif: (id: string) => void;
   addLearningApp: (app: Omit<LearningApp, 'id' | 'createdAt'>) => void;
   deleteLearningApp: (id: string) => void;
-  addAd: (ad: Omit<Advertisement, 'id' | 'createdAt'>) => void;
-  deleteAd: (id: string) => void;
 }
 
 const defaultStats: DashboardStats = {
@@ -75,7 +72,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [storeGifs, setStoreGifs] = useState<StoreGif[]>([]);
   const [learningApps, setLearningApps] = useState<LearningApp[]>([]);
-  const [ads, setAds] = useState<Advertisement[]>([]);
 
   // FIREBASE SYNC (onSnapshot)
   useEffect(() => {
@@ -90,11 +86,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const unsubNotifs = onSnapshot(collection(db, 'notifications'), d => setNotifications(d.docs.map(doc => ({ id: doc.id, ...doc.data() } as AppNotification))));
     const unsubStoreGifs = onSnapshot(collection(db, 'storeGifs'), d => setStoreGifs(d.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoreGif))));
     const unsubLearningApps = onSnapshot(collection(db, 'learningApps'), d => setLearningApps(d.docs.map(doc => ({ id: doc.id, ...doc.data() } as LearningApp))));
-    const unsubAds = onSnapshot(collection(db, 'ads'), d => setAds(d.docs.map(doc => ({ id: doc.id, ...doc.data() } as Advertisement))));
 
     return () => {
       unsubUsers(); unsubRooms(); unsubStudents(); unsubClasses();
-      unsubStaffs(); unsubQAs(); unsubNotifs(); unsubStoreGifs(); unsubLearningApps(); unsubAds();
+      unsubStaffs(); unsubQAs(); unsubNotifs(); unsubStoreGifs(); unsubLearningApps();
     };
   }, []);
 
@@ -534,16 +529,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     deleteDoc(doc(db, 'learningApps', id)).catch(console.error);
   };
 
-  const addAd = (ad: Omit<Advertisement, 'id' | 'createdAt'>) => {
-    const id = Date.now().toString();
-    const newAd = { ...ad, createdAt: new Date().toISOString() };
-    setDoc(doc(db, 'ads', id), newAd).catch(console.error);
-  };
-
-  const deleteAd = (id: string) => {
-    deleteDoc(doc(db, 'ads', id)).catch(console.error);
-  };
-
   // Seed default admin if cloud DB has NO users yet!
   useEffect(() => {
     seedDatabase().catch(console.error);
@@ -551,10 +536,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      currentUser, users, rooms, students, classes, staffs, stats, notifications, qas, storeGifs, learningApps, ads,
+      currentUser, users, rooms, students, classes, staffs, stats, notifications, qas, storeGifs, learningApps,
       login, logout, addUser, updateUser, updateClass, updateStudent, updateUserRole, deleteUser,
       addRoom, updateRoom, deleteRoom, addClass, deleteClass, addStudent, deleteStudent, addStaff, deleteStaff, 
-      recordRoomVisit, addNotification, markNotificationAsRead, clearAllNotifications, showToast, addQA, answerQA, addStoreGif, deleteStoreGif, addLearningApp, deleteLearningApp, addAd, deleteAd
+      recordRoomVisit, addNotification, markNotificationAsRead, clearAllNotifications, showToast, addQA, answerQA, addStoreGif, deleteStoreGif, addLearningApp, deleteLearningApp
     }}>
       {children}
     </AppContext.Provider>

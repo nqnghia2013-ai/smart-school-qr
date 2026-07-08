@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Map, ArrowRight, Building2, QrCode, ShieldAlert, FileText, UserSquare2, BookOpen, Flame, PlayCircle, Crown, MessagesSquare, Sun, Cloud, Sparkles, Bird, Plane, Car, Moon, Star, Calendar, Store, Snowflake, ShoppingBag, Plus, Trash2, ChevronLeft, ChevronRight, ExternalLink, Settings, X } from 'lucide-react';
+import { Users, Map, ArrowRight, Building2, QrCode, ShieldAlert, FileText, UserSquare2, BookOpen, Flame, PlayCircle, Crown, MessagesSquare, Sun, Cloud, Sparkles, Bird, Plane, Car, Moon, Star, Calendar, Store, Snowflake, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { motion } from 'motion/react';
@@ -9,84 +9,12 @@ import StreakCalendarModal from '../components/StreakCalendarModal';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { rooms, students, currentUser, updateUser, addNotification, ads, addAd, deleteAd, showToast } = useAppContext();
+  const { rooms, students, currentUser, updateUser, addNotification } = useAppContext();
   const [isGifShopOpen, setIsGifShopOpen] = useState(false);
   const [examDateStr, setExamDateStr] = useState(currentUser?.examDate || '');
   const [timeLeft, setTimeLeft] = useState<{days: number, hours: number, minutes: number, seconds: number} | null>(null);
   const [showStreakCalendar, setShowStreakCalendar] = useState(false);
   const [showStreakShop, setShowStreakShop] = useState(false);
-
-  // Carousel Advertisement States
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [isAutoPlay, setIsAutoPlay] = useState(true);
-  const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
-  const [newAdUrl, setNewAdUrl] = useState('');
-  const [newAdLink, setNewAdLink] = useState('');
-  const [isUploadingAd, setIsUploadingAd] = useState(false);
-
-  useEffect(() => {
-    if (!isAutoPlay || !ads || ads.length <= 1) return;
-    const interval = setInterval(() => {
-      setActiveSlide(prev => (prev + 1) % ads.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isAutoPlay, ads?.length]);
-
-  const handleManualSlideChange = (index: number) => {
-    setIsAutoPlay(false); // Disable auto-play permanently on manual override
-    setActiveSlide(index);
-  };
-
-  const handlePrevSlide = () => {
-    if (!ads || ads.length === 0) return;
-    setIsAutoPlay(false);
-    setActiveSlide(prev => (prev - 1 + ads.length) % ads.length);
-  };
-
-  const handleNextSlide = () => {
-    if (!ads || ads.length === 0) return;
-    setIsAutoPlay(false);
-    setActiveSlide(prev => (prev + 1) % ads.length);
-  };
-
-  const handleUploadAdImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    setIsUploadingAd(true);
-    const reader = new FileReader();
-    const readPromise = new Promise<string>((resolve, reject) => {
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
-    
-    try {
-      reader.readAsDataURL(file);
-      const base64Content = await readPromise;
-      setNewAdUrl(base64Content);
-      showToast('Đã nạp ảnh thành công!', 'success');
-    } catch (err) {
-      console.error(err);
-      showToast('Lỗi khi nạp ảnh.', 'error');
-    } finally {
-      setIsUploadingAd(false);
-    }
-  };
-
-  const handleAddNewAd = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newAdUrl.trim()) {
-      showToast('Vui lòng chọn ảnh hoặc nhập URL ảnh!', 'error');
-      return;
-    }
-    addAd({
-      imageUrl: newAdUrl.trim(),
-      linkUrl: newAdLink.trim() || '#'
-    });
-    setNewAdUrl('');
-    setNewAdLink('');
-    showToast('Đã thêm quảng cáo thành công!', 'success');
-  };
 
   useEffect(() => {
     if (currentUser?.role === 'parent') {
@@ -363,94 +291,39 @@ export default function Dashboard() {
 
       {/* Grid 2 Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Advertisement Carousel */}
+        {/* Lời dạy của Bác */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-[#1C274C] rounded-[2rem] h-[240px] md:h-[280px] relative overflow-hidden border border-white/5 shadow-[0_10px_30px_rgba(28,39,76,0.3)] hover:shadow-[0_20px_40px_rgba(99,102,241,0.4)] hover:-translate-y-2 hover:border-indigo-400 transition-all duration-500 group text-white flex flex-col justify-between"
+          className="bg-gradient-to-br from-[#1E293B] to-[#0F172A] dark:from-[#1E293B] dark:to-[#0F172A] rounded-[2rem] p-6 md:p-8 relative overflow-hidden border border-white/5 shadow-[0_10px_30px_rgba(15,23,42,0.3)] hover:shadow-[0_20px_40px_rgba(99,102,241,0.3)] hover:-translate-y-1 hover:border-indigo-500/50 transition-all duration-500 group text-white flex flex-col sm:flex-row items-center gap-6 md:gap-8"
         >
-          {ads && ads.length > 0 ? (
-            <div className="relative w-full h-full">
-              {/* Ad Image & Link */}
-              <a 
-                href={ads[activeSlide].linkUrl} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="absolute inset-0 block w-full h-full cursor-pointer"
-              >
-                <img 
-                  src={ads[activeSlide].imageUrl} 
-                  alt="Advertisement Banner" 
-                  className="w-full h-full object-cover transition-all duration-700 hover:scale-105" 
-                />
-              </a>
+          <div className="absolute inset-0 pointer-events-none opacity-20">
+            <Star className="absolute top-4 left-10 w-2 h-2 text-white fill-white animate-pulse" />
+            <div className="absolute top-[30%] left-[60%] w-16 h-[1px] bg-gradient-to-r from-transparent via-white to-transparent transform -rotate-45"></div>
+          </div>
+          
+          {/* Ảnh Bác Hồ */}
+          <div className="w-32 h-44 md:w-36 md:h-48 xl:w-40 xl:h-52 shrink-0 rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl relative group-hover:border-indigo-400/50 transition-colors duration-500 bg-slate-900/60">
+            <img 
+              src="/ho-chi-minh.png" 
+              alt="Chủ tịch Hồ Chí Minh" 
+              className="w-full h-full object-cover object-top scale-102 group-hover:scale-105 transition-transform duration-700"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
+          </div>
 
-              {/* Overlay elements */}
-              <span className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-[10px] text-white px-2.5 py-1 rounded-full font-extrabold uppercase tracking-widest z-20 shadow-md">
-                QUẢNG CÁO
-              </span>
-
-              {/* Technician Control Button */}
-              {currentUser?.role === 'technician' && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setIsAdManagerOpen(true); }}
-                  className="absolute top-4 right-4 p-2.5 rounded-full bg-indigo-600/90 backdrop-blur-sm hover:bg-indigo-700 hover:scale-110 text-white z-30 transition-all shadow-lg active:scale-95 border border-indigo-400/30"
-                  title="Quản lý quảng cáo"
-                >
-                  <Settings className="w-4 h-4" />
-                </button>
-              )}
-
-              {/* Slide Navigation Buttons */}
-              {ads.length > 1 && (
-                <>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handlePrevSlide(); }} 
-                    className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/40 hover:bg-black/60 text-white z-20 transition-all opacity-0 group-hover:opacity-100 hidden sm:block border border-white/10 active:scale-95"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handleNextSlide(); }} 
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/40 hover:bg-black/60 text-white z-20 transition-all opacity-0 group-hover:opacity-100 hidden sm:block border border-white/10 active:scale-95"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-
-                  {/* Dot Indicators */}
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
-                    {ads.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={(e) => { e.stopPropagation(); handleManualSlideChange(index); }}
-                        className={`w-2 h-2 rounded-full transition-all ${activeSlide === index ? 'bg-[#FFD15B] w-5' : 'bg-white/40 hover:bg-white/70'}`}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-[#1C274C] p-6 relative">
-              {currentUser?.role === 'technician' && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setIsAdManagerOpen(true); }}
-                  className="absolute top-4 right-4 p-2.5 rounded-full bg-indigo-600/90 backdrop-blur-sm hover:bg-indigo-750 text-white z-30 transition-all"
-                  title="Quản lý quảng cáo"
-                >
-                  <Settings className="w-4 h-4" />
-                </button>
-              )}
-              <ShoppingBag className="w-12 h-12 text-slate-500 mb-2 animate-bounce" />
-              <p className="text-slate-400 text-sm font-semibold">Chưa có banner quảng cáo</p>
-              {currentUser?.role === 'technician' && (
-                <button onClick={() => setIsAdManagerOpen(true)} className="mt-3 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-xs font-bold rounded-lg transition-all flex items-center gap-1">
-                  <Plus className="w-3.5 h-3.5" /> Thêm quảng cáo
-                </button>
-              )}
-            </div>
-          )}
+          {/* Lời dạy */}
+          <div className="flex-1 flex flex-col justify-center text-center sm:text-left relative z-10">
+            <p className="text-base md:text-lg xl:text-xl font-display font-medium text-slate-100 italic leading-relaxed mb-4 tracking-wide relative">
+              <span className="text-3xl md:text-4xl text-indigo-400 font-serif absolute -top-3.5 -left-4 opacity-40">“</span>
+              Ý thức làm chủ không chỉ không phải chỉ tỏ rõ ở tinh thần hăng hái lao động, mà còn phải tỏ rõ ở tinh thần say mê học tập để không ngừng nâng cao năng lực làm chủ của mình.
+              <span className="text-3xl md:text-4xl text-indigo-400 font-serif absolute -bottom-6 opacity-40">”</span>
+            </p>
+            <p className="text-sm font-black text-[#FFD15B] tracking-widest uppercase mt-2">
+              — Chủ tịch Hồ Chí Minh —
+            </p>
+          </div>
         </motion.div>
 
         {/* Đếm ngược kỳ thi */}
@@ -634,141 +507,6 @@ export default function Dashboard() {
       <GifShopModal isOpen={isGifShopOpen} onClose={() => setIsGifShopOpen(false)} />
       <StreakShopModal isOpen={showStreakShop} onClose={() => setShowStreakShop(false)} />
       <StreakCalendarModal isOpen={showStreakCalendar} onClose={() => setShowStreakCalendar(false)} />
-
-      {/* Advertisement Manager Modal (Technician Only) */}
-      {isAdManagerOpen && currentUser?.role === 'technician' && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 text-white rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-              <div>
-                <h3 className="text-lg font-black text-[#FFD15B] flex items-center gap-2">
-                  <Settings className="w-5 h-5" /> QUẢN LÝ QUẢNG CÁO
-                </h3>
-                <p className="text-xs text-slate-400 mt-1">Dành riêng cho Kỹ thuật viên hệ thống</p>
-              </div>
-              <button 
-                onClick={() => setIsAdManagerOpen(false)}
-                className="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors text-slate-300"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Add New Ad Form */}
-              <form onSubmit={handleAddNewAd} className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
-                <h4 className="text-sm font-black text-slate-300 uppercase tracking-widest flex items-center gap-2">
-                  <Plus className="w-4 h-4 text-emerald-500" /> Thêm Banner Mới
-                </h4>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* File Upload / Image Link */}
-                  <div className="space-y-2">
-                    <label className="text-xs text-slate-400 font-bold block">Tải ảnh lên hoặc nhập URL</label>
-                    <div className="flex gap-2">
-                      <input 
-                        type="text" 
-                        placeholder="Link ảnh (https://...)" 
-                        value={newAdUrl}
-                        onChange={e => setNewAdUrl(e.target.value)}
-                        className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-550 text-white"
-                      />
-                      <label className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-colors shrink-0 flex items-center justify-center border border-slate-700/30">
-                        {isUploadingAd ? 'Nạp...' : 'Tải File'}
-                        <input 
-                          type="file" 
-                          accept="image/*"
-                          onChange={handleUploadAdImage}
-                          className="hidden" 
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Redirect URL */}
-                  <div className="space-y-2">
-                    <label className="text-xs text-slate-400 font-bold block">Liên kết khi Click (Link URL)</label>
-                    <input 
-                      type="text" 
-                      placeholder="https://solvefortomorrow.vn" 
-                      value={newAdLink}
-                      onChange={e => setNewAdLink(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-550 text-white"
-                    />
-                  </div>
-                </div>
-
-                {newAdUrl && (
-                  <div className="mt-3 relative w-full h-[120px] rounded-xl overflow-hidden border border-slate-800">
-                    <img src={newAdUrl} alt="Preview" className="w-full h-full object-cover" />
-                    <button 
-                      type="button" 
-                      onClick={() => setNewAdUrl('')}
-                      className="absolute top-2 right-2 bg-red-650 hover:bg-red-700 text-white p-1.5 rounded-full text-xs transition-all shadow-lg"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
-
-                <div className="flex justify-end pt-2">
-                  <button 
-                    type="submit" 
-                    className="px-5 py-2.5 bg-[#FFD15B] text-slate-950 hover:bg-yellow-500 font-bold text-sm rounded-xl transition-all shadow-lg shadow-yellow-500/20 active:scale-95"
-                  >
-                    Thêm Vào Bảng
-                  </button>
-                </div>
-              </form>
-
-              {/* Ads List */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-black text-slate-300 uppercase tracking-widest block">Danh sách banner hiện tại ({ads?.length || 0})</h4>
-                
-                {ads && ads.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-4">
-                    {ads.map((ad) => (
-                      <div key={ad.id} className="flex gap-4 p-3 bg-slate-950 border border-slate-800 rounded-2xl items-center relative group">
-                        <div className="w-[120px] h-[68px] rounded-lg overflow-hidden border border-slate-850 shrink-0">
-                          <img src={ad.imageUrl} alt="Banner" className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0 pr-12">
-                          <p className="text-xs text-slate-500">ID: {ad.id}</p>
-                          <a 
-                            href={ad.linkUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-sm text-indigo-450 hover:underline flex items-center gap-1.5 mt-1 font-semibold truncate"
-                          >
-                            <span>{ad.linkUrl}</span>
-                            <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                          </a>
-                        </div>
-                        <button 
-                          onClick={() => {
-                            if (confirm('Bạn có chắc chắn muốn xóa quảng cáo này?')) {
-                              deleteAd(ad.id);
-                              showToast('Đã xóa quảng cáo!', 'info');
-                            }
-                          }}
-                          className="absolute right-4 p-2 bg-red-500/10 hover:bg-red-500/25 border border-red-500/30 hover:border-red-500 text-red-400 rounded-full transition-all active:scale-95 cursor-pointer"
-                          title="Xóa quảng cáo"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500 text-center py-4">Chưa có quảng cáo nào trong hệ thống.</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
